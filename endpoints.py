@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app
-from .dalle_api_call import create_images
-from .env.secrets import APP_USERNAME, APP_PASSWORD
+from dalle_api_call import create_images
+from env.secrets import APP_USERNAME, APP_PASSWORD
 import jwt
 from datetime import datetime, timedelta
 from functools import wraps
@@ -11,13 +11,14 @@ b0 = Blueprint('GenerateImages', __name__)
 def token_required(f):
     @wraps(f)
     def decorator(*args, **kargs):
-        token = request.args.get('token')
+        token = request.headers.get('Authorization').split()[1]
         if not token:
-            return jsonify({'error': 'token is missing'})
+            return jsonify({'error': 'token is missing'}), 401 #unauthorized
         try:
-            data = jwt.decode(token, current_app.config['SECRET_KEY'])
+            data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
         except:
-            jsonify({'error':'invalid token'})
+            return jsonify({'error':'invalid token'}), 403 #forbidden
+        return f(*args, **kargs)
     return decorator
 
 
@@ -25,6 +26,7 @@ def token_required(f):
 @b0.route('/prompt')
 @token_required
 def getImages():
+    print('i am okay')
     return create_images(request.form['prompt'])
 
 
@@ -39,6 +41,6 @@ def login():
         current_app.config['SECRET_KEY']
         )
         return jsonify({'token': token.encode().decode('utf-8')})
-    return jsonify({'error': 'unable to verify'})
+    return jsonify({'error': 'unable to verify'}), 401 #unauthorized
 
   
