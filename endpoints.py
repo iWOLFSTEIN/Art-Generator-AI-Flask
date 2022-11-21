@@ -11,12 +11,12 @@ b0 = Blueprint('GenerateImages', __name__)
 def token_required(f):
     @wraps(f)
     def decorator(*args, **kargs):
-        token = request.headers.get('Authorization').split()[1]
+        token = request.headers.get('Authorization')
         if not token:
             return jsonify({'error': 'token is missing'}), 401 #unauthorized
         try:
-            data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
-        except:
+            data = jwt.decode(token.split()[1], current_app.config['SECRET_KEY'], algorithms=['HS256'])
+        except Exception as e:
             return jsonify({'error':'invalid token'}), 403 #forbidden
         return f(*args, **kargs)
     return decorator
@@ -25,8 +25,7 @@ def token_required(f):
 
 @b0.route('/prompt')
 @token_required
-def getImages():
-    print('i am okay')
+def getImages():   
     return create_images(request.form['prompt'])
 
 
@@ -36,7 +35,7 @@ def login():
         
         token = jwt.encode({
           'user': request.form['username'],
-          'expiration': str(datetime.utcnow() + timedelta(weeks=4))
+          'exp': datetime.utcnow() + timedelta(seconds=1)
         },
         current_app.config['SECRET_KEY']
         )
