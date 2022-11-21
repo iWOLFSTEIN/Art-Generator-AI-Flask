@@ -23,10 +23,10 @@ def token_required(f):
 
 
 
-@b0.route('/prompt')
+@b0.route('/prompt/<string:prompt>')
 @token_required
-def getImages():   
-    return create_images(request.form['prompt'])
+def getImages(prompt):
+    return create_images(prompt)
 
 
 @b0.route('/login', methods=['POST'])
@@ -35,7 +35,7 @@ def login():
         
         token = jwt.encode({
           'user': request.form['username'],
-          'exp': datetime.utcnow() + timedelta(seconds=1)
+          'exp': datetime.utcnow() + timedelta(days=30)
         },
         current_app.config['SECRET_KEY']
         )
