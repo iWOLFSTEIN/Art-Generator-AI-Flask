@@ -7,8 +7,8 @@ openai.api_key = DALLE_API_KEY
 def create_images(prompt):
   response = openai.Image.create(
   prompt=prompt,
-  n=8,
-  size="256x256"
+  n=1,
+  size="512x512"
   )
 
   return response
